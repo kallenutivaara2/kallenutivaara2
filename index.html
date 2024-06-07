@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pizzabestellung</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #fff5aa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            position: relative;
+        }
+
+        .main-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            width: 500px;
+            max-width: 90%;
+            z-index: 2;
+            margin: 0 20px;
+        }
+
+        h1 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #6e196e;
+        }
+
+        .url-input {
+            margin-bottom: 20px;
+        }
+
+        .url-input label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #6e196e;
+        }
+
+        .url-input input {
+            width: calc(100% - 24px);
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .url-input input:focus {
+            outline: none;
+            border-color: #e16e50;
+            box-shadow: 0 0 5px rgba(225, 110, 80, 0.25);
+        }
+
+        .order-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .order-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .order-item input {
+            flex: 1;
+            padding: 10px;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .order-item input:focus {
+            outline: none;
+            border-color: #e16e50;
+            box-shadow: 0 0 5px rgba(225, 110, 80, 0.25);
+        }
+
+        .order-item button {
+            background: #e16e50;
+            border: none;
+            color: white;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .order-item button:hover {
+            background: #b04a38;
+        }
+
+        .add-order-button {
+            background: #6e196e;
+            border: none;
+            color: white;
+            padding: 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1em;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        .add-order-button:hover {
+            background: #4b124b;
+        }
+
+        .comic-image {
+            width: 200px;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <img src="https://media0.giphy.com/avatars/arshiabawa/3RIaJdb5n3yn.gif" alt="Comic Pizza Man Left" class="comic-image">
+        <div class="container">
+            <h1>Pizzabestellung</h1>
+            <div class="url-input">
+                <label for="pizzeria-url">Pizzeria von der wir bestellen:</label>
+                <input type="text" id="pizzeria-url" placeholder="URL der Pizzeria" oninput="updatePizzeriaLink(this.value)">
+                <p id="pizzeria-link" style="display:none;"><a href="#" target="_blank">Pizzeria unserer Vertrauens</a></p>
+            </div>
+            <ul class="order-list" id="order-list">
+            </ul>
+            <button class="add-order-button" onclick="addOrder()">Pizza hinzufügen</button>
+        </div>
+        <img src="https://media0.giphy.com/avatars/arshiabawa/3RIaJdb5n3yn.gif" alt="Comic Pizza Man Right" class="comic-image">
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            loadOrders();
+            const storedUrl = localStorage.getItem('pizzeriaUrl');
+            if (storedUrl) {
+                document.getElementById('pizzeria-url').value = storedUrl;
+                updatePizzeriaLink(storedUrl);
+            }
+        });
+
+        function addOrder() {
+            const orderList = document.getElementById('order-list');
+            const orderItem = document.createElement('li');
+            orderItem.className = 'order-item';
+            orderItem.innerHTML = `
+                <input type="text" placeholder="Dein Name" oninput="saveOrders()">
+                <input type="text" placeholder="Welche Pizza?" oninput="saveOrders()">
+                <button onclick="removeOrder(this)">✖</button>
+            `;
+            orderList.appendChild(orderItem);
+            saveOrders();
+        }
+
+        function removeOrder(button) {
+            const orderItem = button.parentElement;
+            orderItem.remove();
+            saveOrders();
+        }
+
+        function updatePizzeriaLink(url) {
+            const linkElement = document.getElementById('pizzeria-link');
+            if (url.trim() !== '') {
+                linkElement.style.display = 'block';
+                linkElement.querySelector('a').href = url;
+                localStorage.setItem('pizzeriaUrl', url);
+            } else {
+                linkElement.style.display = 'none';
+                localStorage.removeItem('pizzeriaUrl');
+            }
+        }
+
+        function saveOrders() {
+            const orders = [];
+            document.querySelectorAll('.order-item').forEach(orderItem => {
+                const name = orderItem.children[0].value;
+                const pizza = orderItem.children[1].value;
+                if (name && pizza) {
+                    orders.push({ name, pizza });
+                }
+            });
+            localStorage.setItem('orders', JSON.stringify(orders));
+        }
+
+        function loadOrders() {
+            const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+            const orderList = document.getElementById('order-list');
+            orders.forEach(order => {
+                const orderItem = document.createElement('li');
+                orderItem.className = 'order-item';
+                orderItem.innerHTML = `
+                    <input type="text" placeholder="Dein Name" value="${order.name}" oninput="saveOrders()">
+                    <input type="text" placeholder="Welche Pizza?" value="${order.pizza}" oninput="saveOrders()">
+                    <button onclick="removeOrder(this)">✖</button>
+                `;
+                orderList.appendChild(orderItem);
+            });
+        }
+    </script>
+</body>
+</html>
